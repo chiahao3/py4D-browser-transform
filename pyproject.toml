@@ -23,7 +23,7 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/chiahao3/py4D-browser-transform"
-"Bug Tracker" = "https://github.com/sezelt/py4D-browser-transform/issues"
+"Bug Tracker" = "https://github.com/chiahao3/py4D-browser-transform/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
