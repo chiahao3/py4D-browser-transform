@@ -8,7 +8,7 @@ dynamic = ["version"]
 authors = [
   { name="Chia-Hao Lee", email="chia-hao.lee@cornell.edu" },
 ]
-description = "Plugin that adds utility functions which transform the datacube loaded into py4D-browser"
+description = "py4D-browser plugin that adds utility functions which transform the datacube"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -23,7 +23,9 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/chiahao3/py4D-browser-transform"
+"Repository" = "https://github.com/chiahao3/py4D-browser-transform"
 "Bug Tracker" = "https://github.com/chiahao3/py4D-browser-transform/issues"
+"Changelog" = "https://github.com/chiahao3/py4D-browser-transform/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
