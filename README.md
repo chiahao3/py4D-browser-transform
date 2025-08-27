@@ -3,18 +3,32 @@
 `py4D-browser-transform` is a plugin for [py4D-browser](https://github.com/sezelt/py4D-browser) that provides utility functions for transforming the datacube, currently including flipping, transposing, permuting axes. Other functions like cropping, resampling, and adjusting intensity offsets or scaling might be added in the future.
 
 ## Installation 
-You can install `py4D-browser-transform` directly from GitHub using pip and git (assuming you have git avaialble):
+You can install `py4D-browser-transform` directly from GitHub using pip or conda:
 ```bash
-pip install git+https://github.com/chiahao3/py4D-browser-transform
+pip install py4d-browser-transform
 ```
 
 > 💡 **Note:** 
 > - If you install into a fresh Python environment, `py4D-browser` and `py4DSTEM` will be automatically installed as dependencies so you don't need to install them first.
 > - If you already have `py4D-browser` installed, you can install this plugin into the same Python environment.
 
-## Usage
+A step-by-step guide including creating a fresh Python environment via conda would look like this:
+```bash
+conda create -n py4dgui python=3.12
+conda activate py4dgui
+python -m pip install --upgrade pip
+python -m pip cache purge
+pip install py4d-browser-transform
+```
 
-After installation, you should see the "Transform" submenu appear under the **"Plugins"** menu.  
+## Usage
+Simply run the following command to start the browser once you activated the corresponding Python environment:
+
+```bash
+py4dgui
+```
+
+After installing this plugin, you should see the "Transform" submenu appear under the **"Plugins"** menu.  
 From here, you can:
 
 - Flip or transpose the diffraction pattern.  
