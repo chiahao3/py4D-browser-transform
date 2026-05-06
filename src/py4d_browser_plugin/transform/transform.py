@@ -55,6 +55,10 @@ class TransformPlugin(QWidget):
         self.set_diffraction_flips_action = QAction("Set Diffraction Flips", self)
         self.set_diffraction_flips_action.triggered.connect(self.set_diffraction_flips)
         self.transform_menu.addAction(self.set_diffraction_flips_action)
+
+    def _set_transformed_datacube(self):
+        parent = self.parent
+        parent.set_datacube(parent.datacube, parent.windowTitle())
     
     def set_axis_permutation(self):
         parent = self.parent
@@ -71,10 +75,7 @@ class TransformPlugin(QWidget):
             parent.datacube.data = np.transpose(parent.datacube.data, new_permutation)
             self.current_permutation = new_permutation
 
-            # Update views
-            parent.update_scalebars()
-            parent.update_diffraction_space_view(reset=True)
-            parent.update_real_space_view(reset=True)
+            self._set_transformed_datacube()
 
     def set_diffraction_flips(self):
         parent = self.parent
@@ -106,9 +107,7 @@ class TransformPlugin(QWidget):
 
                 # Update attributes and views
                 self.flip_settings = new_flip_settings
-                parent.update_scalebars()
-                parent.update_diffraction_space_view(reset=True)
-                parent.update_real_space_view(reset=True)
+                self._set_transformed_datacube()
 
 class AxisPermutationDialog(QDialog):
     def __init__(self, parent=None, current_permutation=None):
