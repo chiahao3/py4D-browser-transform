@@ -10,7 +10,7 @@ authors = [
 ]
 description = "py4D-browser plugin that adds utility functions which transform the datacube"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
