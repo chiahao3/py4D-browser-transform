@@ -1,9 +1,10 @@
 # py4D-browser-transform
 
-`py4D-browser-transform` is a plugin for [py4D-browser](https://github.com/sezelt/py4D-browser) that provides utility functions for transforming the datacube, currently including flipping, transposing, permuting axes. Other functions like cropping, resampling, and adjusting intensity offsets or scaling might be added in the future.
+`py4D-browser-transform` is a plugin for [py4D-browser](https://github.com/sezelt/py4D-browser) that adds in-memory datacube transformation tools. It currently supports axis permutation, diffraction flips/transposes, RAM checkpoints and restore, and datacube slicing, subsampling, and binning.
 
-## Installation 
-You can install `py4D-browser-transform` directly from GitHub using pip or conda:
+## Installation
+You can install `py4D-browser-transform` with pip or conda:
+
 ```bash
 pip install py4d-browser-transform
 ```
@@ -31,14 +32,39 @@ py4dgui
 After installing this plugin, you should see the "Transform" submenu appear under the **"Plugins"** menu.  
 From here, you can:
 
-- Flip or transpose the diffraction pattern.  
-- Permute dataset axes if your 4D dataset is not in the expected order.
+- **Set Axis Permutation**: reorder the four datacube axes when the loaded dataset is not in the expected order.
+- **Set Diffraction Flips**: flip the diffraction pattern up/down, left/right, or transpose its X/Y axes.
+- **Save RAM Checkpoint**: store a RAM-only snapshot of the current in-memory datacube.
+- **Restore RAM Checkpoint**: restore a previous RAM checkpoint, rename checkpoints, replace checkpoints, or delete checkpoints.
+- **Slice / Subsample / Bin**: slice, subsample with Python-style step syntax such as `::2`, and bin along the displayed axes `Ry`, `Rx`, `Qy`, and `Qx`.
+
 ![Demo of py4D-browser-transform](assets/demo.gif)
 
-These operations would direcly modify the loaded datacube, but will not affect the raw file stored on disk. You can export the transformed datacube to disk using **File > Export Datacube**.
+These operations directly modify the loaded in-memory datacube, but do not affect the raw file stored on disk. You can export the transformed datacube to disk using **File > Export Datacube**.
 
-> 💡 **Note:** 
-> - The order of flipping and permutation matters so if you mix these two operations, you'll have to reverse the operaitons in the exact opposite order to get back to the original state. For example, if you permute and then flip/transpose, you'll have to undo the flip/transpose and then reset the permute.
+### RAM checkpoints
+
+RAM checkpoints are session-local snapshots of the datacube data at the moment they are saved. They are intended as recovery points before destructive in-memory transformations such as slicing, subsampling, and binning.
+
+Checkpoint restore loads the saved datacube snapshot and resets the flip/permutation markers back to their default clean state. In other words, a checkpoint represents "the datacube exactly as it looked then", not a reversible history of every flip or permutation action that produced it.
+
+Large checkpoints can require substantial memory. The plugin warns before saving a checkpoint larger than 1 GiB, or when total stored checkpoint data would exceed 4 GiB.
+
+### Slicing, subsampling, and binning
+
+The **Slice / Subsample / Bin** dialog provides one row for each axis:
+
+- `Ry`
+- `Rx`
+- `Qy`
+- `Qx`
+
+Use slice text like `:`, `10:100`, or `::4` to select or subsample data. Use the bin control to sum neighboring pixels along an axis. The dialog previews the output shape before applying the transform.
+
+Calibration pixel sizes are updated when both axes in real space or both axes in diffraction space change by the same spacing factor. When the change cannot be represented safely by py4DSTEM's shared real-space or diffraction-space pixel size, calibration is preserved.
+
+> **Note:**
+> The order of flipping and permutation matters. If you mix these operations, reversing them manually requires applying the opposite operations in the opposite order. RAM checkpoints provide a simpler way to return to a known datacube state.
 
 ## License
 
