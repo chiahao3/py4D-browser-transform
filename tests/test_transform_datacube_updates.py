@@ -78,6 +78,11 @@ def _load_transform_module(monkeypatch):
     return importlib.import_module("py4d_browser_plugin.transform.transform")
 
 
+def _load_datacube_ops_module(monkeypatch):
+    _install_pyqt_stubs(monkeypatch)
+    return importlib.import_module("py4d_browser_plugin.transform.datacube_ops")
+
+
 class _Calibration:
     def __init__(self, r_pixel_size=1, q_pixel_size=1, origin=None):
         self.r_pixel_size = r_pixel_size
@@ -257,7 +262,7 @@ def test_checkpoint_delete_rename_replace_and_memory(monkeypatch):
 
 
 def test_apply_datacube_operations_slices_and_subsamples_all_axes(monkeypatch):
-    module = _load_transform_module(monkeypatch)
+    module = _load_datacube_ops_module(monkeypatch)
     data = np.arange(4 * 5 * 6 * 7).reshape(4, 5, 6, 7)
     datacube = _Datacube(data.copy())
 
@@ -275,7 +280,7 @@ def test_apply_datacube_operations_slices_and_subsamples_all_axes(monkeypatch):
 
 
 def test_apply_datacube_operations_bins_axes_and_updates_pixel_size(monkeypatch):
-    module = _load_transform_module(monkeypatch)
+    module = _load_datacube_ops_module(monkeypatch)
     data = np.arange(4 * 4 * 4 * 4).reshape(4, 4, 4, 4)
     datacube = _Datacube(data.copy(), _Calibration(r_pixel_size=2, q_pixel_size=3))
 
@@ -300,7 +305,7 @@ def test_apply_datacube_operations_bins_axes_and_updates_pixel_size(monkeypatch)
 
 
 def test_apply_datacube_operations_adjusts_q_origin_for_slices(monkeypatch):
-    module = _load_transform_module(monkeypatch)
+    module = _load_datacube_ops_module(monkeypatch)
     data = np.arange(3 * 3 * 6 * 6).reshape(3, 3, 6, 6)
     datacube = _Datacube(data.copy(), _Calibration(q_pixel_size=0.5, origin=(10.0, 20.0)))
 
@@ -319,7 +324,7 @@ def test_apply_datacube_operations_adjusts_q_origin_for_slices(monkeypatch):
 
 
 def test_apply_datacube_operations_preserves_pixel_size_for_asymmetric_spacing(monkeypatch):
-    module = _load_transform_module(monkeypatch)
+    module = _load_datacube_ops_module(monkeypatch)
     data = np.arange(4 * 4 * 6 * 6).reshape(4, 4, 6, 6)
     datacube = _Datacube(data.copy(), _Calibration(r_pixel_size=2, q_pixel_size=3))
 
@@ -338,7 +343,7 @@ def test_apply_datacube_operations_preserves_pixel_size_for_asymmetric_spacing(m
 
 
 def test_apply_datacube_operations_invalid_input_does_not_mutate(monkeypatch):
-    module = _load_transform_module(monkeypatch)
+    module = _load_datacube_ops_module(monkeypatch)
     data = np.arange(2 * 3 * 4 * 5).reshape(2, 3, 4, 5)
     datacube = _Datacube(data.copy())
 
