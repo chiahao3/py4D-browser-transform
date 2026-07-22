@@ -71,20 +71,24 @@ def _update_transform_calibration(datacube, starts, spacing_factors):
         )
 
     q_factors = (spacing_factors[2], spacing_factors[3])
-    old_q_pixel_size = calibration.get_Q_pixel_size()
     if q_factors[0] == q_factors[1] and q_factors[0] != 1:
+        old_q_pixel_size = calibration.get_Q_pixel_size()
         _set_calibration_value(
             calibration, "set_Q_pixel_size", old_q_pixel_size * q_factors[0]
         )
 
+    # The origin (qx0, qy0) is stored in *pixel* coordinates of the Q axes,
+    # not physical units, so it must be re-expressed in the transformed
+    # array's own pixel grid: shift by the crop start, then rescale by
+    # however many old pixels now make up one new pixel (step * bin).
     origin = calibration.get_origin() if hasattr(calibration, "get_origin") else None
-    if origin is not None and old_q_pixel_size is not None:
+    if origin is not None:
         qx0, qy0 = origin
         if qx0 is not None and qy0 is not None:
             calibration.set_origin(
                 (
-                    qx0 - starts[2] * old_q_pixel_size,
-                    qy0 - starts[3] * old_q_pixel_size,
+                    (qx0 - starts[2]) / spacing_factors[2],
+                    (qy0 - starts[3]) / spacing_factors[3],
                 )
             )
 

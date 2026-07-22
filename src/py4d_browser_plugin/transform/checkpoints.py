@@ -22,10 +22,23 @@ class DatacubeCheckpoint:
 
 def copy_datacube(datacube):
     if hasattr(datacube, "copy"):
-        return datacube.copy()
-    copied = type(datacube)(datacube.data.copy())
-    if hasattr(datacube, "calibration"):
-        copied.calibration = datacube.calibration.copy()
+        copied = datacube.copy()
+    else:
+        copied = type(datacube)(datacube.data.copy())
+        if hasattr(datacube, "calibration"):
+            copied.calibration = datacube.calibration.copy()
+
+    # py4DSTEM's DataCube.copy() rebuilds a fresh Root, and constructing a
+    # DataCube with an explicit calibration object names that root
+    # "py4DSTEM_root" instead of preserving the original's name. That
+    # silently breaks py4D-browser's calibration reload for any file whose
+    # root name it hardcodes (e.g. "datacube_root"), so keep the original
+    # root's name on the copy.
+    original_root = getattr(datacube, "root", None)
+    copied_root = getattr(copied, "root", None)
+    if original_root is not None and copied_root is not None:
+        copied_root.name = original_root.name
+
     return copied
 
 

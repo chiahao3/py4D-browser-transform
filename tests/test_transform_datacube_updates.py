@@ -319,8 +319,29 @@ def test_apply_datacube_operations_adjusts_q_origin_for_slices(monkeypatch):
         ],
     )
 
-    assert transformed.calibration.get_origin() == (9.0, 18.0)
+    assert transformed.calibration.get_origin() == (8.0, 16.0)
     assert datacube.calibration.get_origin() == (10.0, 20.0)
+
+
+def test_apply_datacube_operations_adjusts_q_origin_for_binning(monkeypatch):
+    module = _load_datacube_ops_module(monkeypatch)
+    data = np.arange(2 * 2 * 8 * 8).reshape(2, 2, 8, 8)
+    datacube = _Datacube(data.copy(), _Calibration(q_pixel_size=0.5, origin=(6.0, 8.0)))
+
+    transformed = module.apply_datacube_operations(
+        datacube,
+        [
+            {"slice": ":", "bin": 1},
+            {"slice": ":", "bin": 1},
+            {"slice": "2:", "bin": 2},
+            {"slice": "0:", "bin": 2},
+        ],
+    )
+
+    # New origin = (old_origin - crop_start) / (step * bin), in the
+    # transformed array's own pixel grid.
+    assert transformed.calibration.get_origin() == (2.0, 4.0)
+    assert datacube.calibration.get_origin() == (6.0, 8.0)
 
 
 def test_apply_datacube_operations_preserves_pixel_size_for_asymmetric_spacing(monkeypatch):
@@ -340,6 +361,38 @@ def test_apply_datacube_operations_preserves_pixel_size_for_asymmetric_spacing(m
 
     assert transformed.calibration.get_R_pixel_size() == 2
     assert transformed.calibration.get_Q_pixel_size() == 3
+
+
+class _Root:
+    def __init__(self, name):
+        self.name = name
+
+
+class _DatacubeWithRoot(_Datacube):
+    def __init__(self, data, calibration=None, root_name="datacube_root"):
+        super().__init__(data, calibration)
+        self.root = _Root(root_name)
+
+    def copy(self):
+        # Mimic py4DSTEM's DataCube.copy(): rebuilding via the constructor
+        # gives the new object a differently-named root.
+        copied = _DatacubeWithRoot(
+            self.data.copy(), self.calibration.copy(), root_name="py4DSTEM_root"
+        )
+        return copied
+
+
+def test_copy_datacube_preserves_original_root_name(monkeypatch):
+    _install_pyqt_stubs(monkeypatch)
+    module = importlib.import_module("py4d_browser_plugin.transform.checkpoints")
+
+    datacube = _DatacubeWithRoot(np.arange(2 * 2 * 2 * 2).reshape(2, 2, 2, 2))
+    assert datacube.root.name == "datacube_root"
+
+    copied = module.copy_datacube(datacube)
+
+    assert copied.root.name == "datacube_root"
+    assert datacube.root.name == "datacube_root"
 
 
 def test_apply_datacube_operations_invalid_input_does_not_mutate(monkeypatch):

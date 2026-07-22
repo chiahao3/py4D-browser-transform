@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-07-21
+### Fixed
+- Fix diffraction-origin adjustment after slicing/subsampling/binning: the origin is stored in Q-axis pixel coordinates, but the previous formula subtracted a physical-unit offset and never divided by the bin/subsample factor, leaving the origin badly wrong after any transform that touched the Q axes.
+- Preserve the datacube's original EMD root name (e.g. `datacube_root`) through RAM checkpoint copies and datacube transforms. `py4DSTEM.DataCube.copy()` renames the root to `py4DSTEM_root`, which broke calibration reload when a transformed/checkpointed datacube was later exported as `py4DSTEM HDF5` and reopened in py4D-browser.
+
 ## [0.1.0] - 2026-05-23
 ### Added
 - Add `Slice / Subsample / Bin` to the `Transform` submenu for applying validated per-axis slicing, stride-based subsampling, and binning to 4D datacubes.
