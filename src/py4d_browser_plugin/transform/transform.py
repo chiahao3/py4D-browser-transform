@@ -52,14 +52,26 @@ class TransformPlugin(QWidget):
         self.flip_settings = dict(DEFAULT_FLIP_SETTINGS)
         self.checkpoints = []
         self._checkpoint_ids = count(1)
+        # True while our own set_datacube is in flight (see _apply_datacube).
+        self._self_replaced = False
 
         self.transform_menu = plugin_menu
         self._setup_menu_actions()
 
+        # Reset transform state when the host swaps in a new datacube.
+        signal = getattr(api, "signal_datacube_changed", None)
+        if signal is not None:
+            signal.connect(self._on_datacube_changed)
+
     def close(self):
-        # The loader calls this on unload. Nothing to tear down here; the
-        # RAM checkpoints live on the plugin instance and are dropped with it.
-        pass
+        # Disconnect on unload so no dangling slot leaks onto the browser.
+        signal = getattr(self.api, "signal_datacube_changed", None)
+        if signal is not None:
+            try:
+                signal.disconnect(self._on_datacube_changed)
+            except (TypeError, RuntimeError):
+                # Not connected, or already disconnected.
+                pass
 
     # Menu setup
 
@@ -84,8 +96,30 @@ class TransformPlugin(QWidget):
         self.restore_checkpoint_action.triggered.connect(self.restore_ram_checkpoint)
         self.transform_menu.addAction(self.restore_checkpoint_action)
 
+    def _apply_datacube(self, datacube):
+        # Our own set_datacube also emits the changed signal; flag it so the
+        # handler below doesn't reset state on our own swaps.
+        self._self_replaced = True
+        try:
+            self.api.set_datacube(datacube)
+        finally:
+            self._self_replaced = False
+
     def _set_transformed_datacube(self):
-        self.api.set_datacube(self.api.datacube)
+        self._apply_datacube(self.api.datacube)
+
+    def _on_datacube_changed(self):
+        # Reset only when the host loads a new dataset, not for our own swaps.
+        if self._self_replaced:
+            return
+        self._reset_transform_state()
+
+    def _reset_transform_state(self):
+        # Restore no-transform defaults and drop the stale RAM checkpoints.
+        self.current_permutation = list(DEFAULT_PERMUTATION)
+        self.flip_settings = dict(DEFAULT_FLIP_SETTINGS)
+        self.checkpoints = []
+        self._checkpoint_ids = count(1)
 
     # Checkpoint workflow
 
@@ -141,7 +175,7 @@ class TransformPlugin(QWidget):
         restored_datacube = copy_datacube(checkpoint.datacube)
         self.current_permutation = list(DEFAULT_PERMUTATION)
         self.flip_settings = dict(DEFAULT_FLIP_SETTINGS)
-        self.api.set_datacube(restored_datacube)
+        self._apply_datacube(restored_datacube)
         return restored_datacube
 
     def _confirm_checkpoint_save(self, checkpoint_bytes):
@@ -252,7 +286,7 @@ class TransformPlugin(QWidget):
         except ValueError as exc:
             QMessageBox.warning(self.api.qt_window, SLICE_SUBSAMPLE_BIN_LABEL, str(exc))
             return None
-        self.api.set_datacube(transformed)
+        self._apply_datacube(transformed)
         return transformed
 
     # Existing flip/permutation actions
